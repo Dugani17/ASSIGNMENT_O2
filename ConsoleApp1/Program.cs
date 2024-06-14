@@ -121,4 +121,112 @@ public class Board
         }
 
     }
+    public bool IsValidMove(Player player, char direction)
+    {
+        int newX = player.Position.X;
+        int newY = player.Position.Y;
+
+        switch (direction)
+        {
+            case 'U':
+                newY--;
+                break;
+            case 'D':
+                newY++;
+                break;
+            case 'L':
+                newX--;
+                break;
+            case 'R':
+                newX++;
+                break;
+        }
+
+        return newX >= 0 && newX < 6 && newY >= 0 && newY < 6 && Grid[newY, newX].Occupant != "O";
+    }
+
+    public void CollectGem(Player player)
+    {
+        if (Grid[player.Position.Y, player.Position.X].Occupant == "G")
+        {
+            player.GemCount++;
+            Grid[player.Position.Y, player.Position.X].Occupant = "-";
+        }
+    }
+}
+
+public class Game
+{
+    private Board board;
+    private Player player1;
+    private Player player2;
+    private Player currentTurn;
+    private int totalTurns;
+
+    public Game()
+    {
+        board = new Board();
+        player1 = new Player("P1", new Position(0, 0));
+        player2 = new Player("P2", new Position(5, 5));
+        currentTurn = player1;
+        totalTurns = 0;
+    }
+
+    public void Start()
+    {
+        while (!IsGameOver())
+        {
+            board.Display(player1, player2);
+            Console.Write($"{currentTurn.Name}'s turn (U, D, L, R): ");
+            char move = Console.ReadKey().KeyChar;
+            Console.WriteLine();
+
+            if (board.IsValidMove(currentTurn, move))
+            {
+                currentTurn.Move(move);
+                board.CollectGem(currentTurn);
+                SwitchTurn();
+                totalTurns++;
+            }
+            else
+            {
+                Console.WriteLine("Invalid move. Try again.");
+            }
+        }
+        AnnounceWinner();
+    }
+
+    private void SwitchTurn()
+    {
+        currentTurn = (currentTurn == player1) ? player2 : player1;
+    }
+
+    private bool IsGameOver()
+    {
+        return totalTurns >= 30;
+    }
+
+    private void AnnounceWinner()
+    {
+        if (player1.GemCount > player2.GemCount)
+        {
+            Console.WriteLine("Player 1 wins!");
+        }
+        else if (player2.GemCount > player1.GemCount)
+        {
+            Console.WriteLine("Player 2 wins!");
+        }
+        else
+        {
+            Console.WriteLine("It's a tie!");
+        }
+    }
+}
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        Game game = new Game();
+        game.Start();
+    }
 }
